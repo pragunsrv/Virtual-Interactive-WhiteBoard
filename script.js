@@ -9,13 +9,15 @@ const textButton = document.getElementById('addText');
 const textInput = document.getElementById('textInput');
 const fontSizeInput = document.getElementById('fontSize');
 const textColorInput = document.getElementById('textColor');
+const backgroundColorInput = document.getElementById('backgroundColor');
 const moveButton = document.getElementById('moveMode');
 const resizeButton = document.getElementById('resizeMode');
 const deleteButton = document.getElementById('deleteShape');
 const groupButton = document.getElementById('groupShapes');
 const ungroupButton = document.getElementById('ungroupShapes');
 const colorBtns = document.querySelectorAll('.color-btn');
-const backgroundColorInput = document.getElementById('backgroundColor');
+const strokeStyleSelect = document.getElementById('strokeStyle');
+const snapToGridCheckbox = document.getElementById('snapToGrid');
 
 canvas.width = 800;
 canvas.height = 600;
@@ -31,8 +33,9 @@ let mode = 'draw'; // 'draw', 'move', 'resize', 'delete'
 let selectedShapes = [];
 let isGrouping = false;
 let groupId = 0;
+let snapToGrid = false;
+const gridSize = 20;
 
-// Update drawing properties based on user input
 colorBtns.forEach(btn => {
     btn.addEventListener('click', (e) => {
         currentColor = e.target.getAttribute('data-color');
@@ -54,6 +57,24 @@ textColorInput.addEventListener('input', (e) => {
 
 backgroundColorInput.addEventListener('input', (e) => {
     canvas.style.backgroundColor = e.target.value;
+});
+
+strokeStyleSelect.addEventListener('change', (e) => {
+    switch (e.target.value) {
+        case 'dashed':
+            ctx.setLineDash([5, 5]);
+            break;
+        case 'dotted':
+            ctx.setLineDash([1, 5]);
+            break;
+        default:
+            ctx.setLineDash([]);
+            break;
+    }
+});
+
+snapToGridCheckbox.addEventListener('change', (e) => {
+    snapToGrid = e.target.checked;
 });
 
 clearButton.addEventListener('click', () => {
@@ -145,21 +166,21 @@ canvas.addEventListener('mouseup', () => {
     isDrawing = false;
     if (mode === 'draw') {
         if (drawShape === 'rectangle') {
-            const newShape = { type: 'rectangle', x: lastX, y: lastY, width: canvas.mouseX - lastX, height: canvas.mouseY - lastY, color: currentColor, groupId };
+            const newShape = { type: 'rectangle', x: snapToGrid ? snapToGridPosition(lastX) : lastX, y: snapToGrid ? snapToGridPosition(lastY) : lastY, width: snapToGrid ? snapToGridSize(canvas.mouseX - lastX) : canvas.mouseX - lastX, height: snapToGrid ? snapToGridSize(canvas.mouseY - lastY) : canvas.mouseY - lastY, color: currentColor, groupId };
             shapes.push(newShape);
-            drawRectangle(lastX, lastY, canvas.mouseX - lastX, canvas.mouseY - lastY);
+            drawRectangle(newShape.x, newShape.y, newShape.width, newShape.height);
         } else if (drawShape === 'circle') {
             const radius = Math.sqrt(Math.pow(canvas.mouseX - lastX, 2) + Math.pow(canvas.mouseY - lastY, 2));
-            const newShape = { type: 'circle', x: lastX, y: lastY, radius: radius, color: currentColor, groupId };
+            const newShape = { type: 'circle', x: snapToGrid ? snapToGridPosition(lastX) : lastX, y: snapToGrid ? snapToGridPosition(lastY) : lastY, radius: snapToGrid ? snapToGridSize(radius) : radius, color: currentColor, groupId };
             shapes.push(newShape);
-            drawCircle(lastX, lastY, radius);
+            drawCircle(newShape.x, newShape.y, newShape.radius);
         } else if (drawShape === 'text') {
             const text = textInput.value;
             if (text) {
                 ctx.font = `${fontSizeInput.value}px Arial`;
                 ctx.fillStyle = textColorInput.value;
-                ctx.fillText(text, lastX, lastY);
-                const newShape = { type: 'text', x: lastX, y: lastY, text, fontSize: fontSizeInput.value, color: textColorInput.value, groupId };
+                ctx.fillText(text, snapToGrid ? snapToGridPosition(lastX) : lastX, snapToGrid ? snapToGridPosition(lastY) : lastY);
+                const newShape = { type: 'text', x: snapToGrid ? snapToGridPosition(lastX) : lastX, y: snapToGrid ? snapToGridPosition(lastY) : lastY, text, fontSize: fontSizeInput.value, color: textColorInput.value, groupId };
                 shapes.push(newShape);
             }
             textInput.style.display = 'none';
@@ -232,4 +253,12 @@ function redrawShapes() {
             ctx.fillText(shape.text, shape.x, shape.y);
         }
     });
+}
+
+function snapToGridPosition(value) {
+    return Math.round(value / gridSize) * gridSize;
+}
+
+function snapToGridSize(value) {
+    return Math.round(value / gridSize) * gridSize;
 }

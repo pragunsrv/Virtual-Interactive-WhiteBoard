@@ -3,37 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Virtual Whiteboard - Version 9</title>
+    <title>Virtual Whiteboard - Version 10</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="container">
-        <div class="controls">
-            <div class="color-palette">
-                <button class="color-btn" style="background-color: #000000;" data-color="#000000"></button>
-                <button class="color-btn" style="background-color: #FF0000;" data-color="#FF0000"></button>
-                <button class="color-btn" style="background-color: #00FF00;" data-color="#00FF00"></button>
-                <button class="color-btn" style="background-color: #0000FF;" data-color="#0000FF"></button>
-                <button class="color-btn" style="background-color: #FFFF00;" data-color="#FFFF00"></button>
-            </div>
-            <input type="range" id="brushSize" min="1" max="20" value="5">
-            <button id="clearCanvas">Clear</button>
-            <button id="saveCanvas">Save</button>
-            <button id="drawRectangle">Rectangle</button>
-            <button id="drawCircle">Circle</button>
-            <button id="addText">Text</button>
-            <input type="text" id="textInput" placeholder="Enter text" style="display: none;">
-            <input type="number" id="fontSize" min="8" max="100" value="20">
-            <input type="color" id="textColor" value="#000000">
-            <button id="moveMode">Move</button>
-            <button id="resizeMode">Resize</button>
-            <button id="deleteShape">Delete</button>
-            <button id="groupShapes">Group</button>
-            <button id="ungroupShapes">Ungroup</button>
-            <input type="color" id="backgroundColor" value="#ffffff">
-        </div>
-        <canvas id="whiteboard"></canvas>
+    <div class="toolbar">
+        <button id="clearCanvas">Clear Canvas</button>
+        <button id="saveCanvas">Save Canvas</button>
+        <button id="drawRectangle">Draw Rectangle</button>
+        <button id="drawCircle">Draw Circle</button>
+        <button id="addText">Add Text</button>
+        <input type="text" id="textInput" placeholder="Enter text" style="display: none;">
+        <input type="number" id="fontSize" value="16" min="8" max="72">
+        <input type="color" id="textColor" value="#000000">
+        <input type="color" id="backgroundColor" value="#ffffff">
+        <button id="moveMode">Move Mode</button>
+        <button id="resizeMode">Resize Mode</button>
+        <button id="deleteShape">Delete Shape</button>
+        <button id="groupShapes">Group Shapes</button>
+        <button id="ungroupShapes">Ungroup Shapes</button>
+        <input type="color" class="color-btn" data-color="#ff0000" value="#ff0000">
+        <input type="color" class="color-btn" data-color="#00ff00" value="#00ff00">
+        <input type="color" class="color-btn" data-color="#0000ff" value="#0000ff">
+        <input type="color" class="color-btn" data-color="#000000" value="#000000">
+        <input type="color" class="color-btn" data-color="#ffffff" value="#ffffff">
+        <label for="brushSize">Brush Size:</label>
+        <input type="number" id="brushSize" value="5" min="1" max="20">
+        <label for="strokeStyle">Stroke Style:</label>
+        <select id="strokeStyle">
+            <option value="solid">Solid</option>
+            <option value="dashed">Dashed</option>
+            <option value="dotted">Dotted</option>
+        </select>
+        <label for="snapToGrid">Snap to Grid:</label>
+        <input type="checkbox" id="snapToGrid">
     </div>
+    <canvas id="whiteboard"></canvas>
     <script src="script.js"></script>
 </body>
 </html>
