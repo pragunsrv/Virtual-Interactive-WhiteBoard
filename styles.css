@@ -16,3 +16,19 @@ canvas {
     border: 1px solid #000;
     background-color: #fff;
 }
+
+.controls {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    display: flex;
+    flex-direction: column;
+}
+
+input[type="color"] {
+    margin-bottom: 10px;
+}
+
+input[type="range"] {
+    width: 80px;
+}
