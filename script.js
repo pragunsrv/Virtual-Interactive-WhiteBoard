@@ -2,9 +2,11 @@
 const canvas = document.getElementById('whiteboard');
 const ctx = canvas.getContext('2d');
 
-// Get the color picker and brush size input elements
+// Get the color picker, brush size, and buttons
 const colorPicker = document.getElementById('colorPicker');
 const brushSize = document.getElementById('brushSize');
+const clearButton = document.getElementById('clearCanvas');
+const saveButton = document.getElementById('saveCanvas');
 
 // Set canvas size
 canvas.width = 800;
@@ -47,4 +49,17 @@ canvas.addEventListener('mousemove', (e) => {
     ctx.lineTo(e.offsetX, e.offsetY);
     ctx.stroke();
     [lastX, lastY] = [e.offsetX, e.offsetY];
+});
+
+// Clear the canvas
+clearButton.addEventListener('click', () => {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+});
+
+// Save the canvas as an image
+saveButton.addEventListener('click', () => {
+    const link = document.createElement('a');
+    link.href = canvas.toDataURL();
+    link.download = 'drawing.png';
+    link.click();
 });

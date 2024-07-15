@@ -31,4 +31,17 @@ input[type="color"] {
 
 input[type="range"] {
     width: 80px;
+    margin-bottom: 10px;
+}
+
+button {
+    margin-bottom: 5px;
+    padding: 5px 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #ddd;
 }
