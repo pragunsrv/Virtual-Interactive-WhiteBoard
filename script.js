@@ -5,11 +5,13 @@ const clearButton = document.getElementById('clearCanvas');
 const saveButton = document.getElementById('saveCanvas');
 const rectButton = document.getElementById('drawRectangle');
 const circleButton = document.getElementById('drawCircle');
+const lineButton = document.getElementById('drawLine');
 const textButton = document.getElementById('addText');
 const textInput = document.getElementById('textInput');
 const fontSizeInput = document.getElementById('fontSize');
 const textColorInput = document.getElementById('textColor');
 const backgroundColorInput = document.getElementById('backgroundColor');
+const strokeColorInput = document.getElementById('strokeColor');
 const moveButton = document.getElementById('moveMode');
 const resizeButton = document.getElementById('resizeMode');
 const deleteButton = document.getElementById('deleteShape');
@@ -18,6 +20,7 @@ const ungroupButton = document.getElementById('ungroupShapes');
 const colorBtns = document.querySelectorAll('.color-btn');
 const strokeStyleSelect = document.getElementById('strokeStyle');
 const snapToGridCheckbox = document.getElementById('snapToGrid');
+const colorPickerButton = document.getElementById('colorPicker');
 
 canvas.width = 800;
 canvas.height = 600;
@@ -27,6 +30,7 @@ let drawShape = 'line';
 let lastX = 0;
 let lastY = 0;
 let currentColor = '#000000';
+let strokeColor = '#000000';
 let shapes = [];
 let currentShape = null;
 let mode = 'draw'; // 'draw', 'move', 'resize', 'delete'
@@ -59,6 +63,10 @@ backgroundColorInput.addEventListener('input', (e) => {
     canvas.style.backgroundColor = e.target.value;
 });
 
+strokeColorInput.addEventListener('input', (e) => {
+    strokeColor = e.target.value;
+});
+
 strokeStyleSelect.addEventListener('change', (e) => {
     switch (e.target.value) {
         case 'dashed':
@@ -75,6 +83,13 @@ strokeStyleSelect.addEventListener('change', (e) => {
 
 snapToGridCheckbox.addEventListener('change', (e) => {
     snapToGrid = e.target.checked;
+});
+
+colorPickerButton.addEventListener('click', () => {
+    // Color picker functionality can be implemented here
+    // For simplicity, it's currently just changing color to red
+    currentColor = '#ff0000';
+    ctx.strokeStyle = currentColor;
 });
 
 clearButton.addEventListener('click', () => {
@@ -96,6 +111,10 @@ rectButton.addEventListener('click', () => {
 
 circleButton.addEventListener('click', () => {
     drawShape = 'circle';
+});
+
+lineButton.addEventListener('click', () => {
+    drawShape = 'line';
 });
 
 textButton.addEventListener('click', () => {
@@ -150,22 +169,19 @@ canvas.addEventListener('mousedown', (e) => {
             e.offsetY >= shape.y && e.offsetY <= shape.y + shape.height
         );
         if (currentShape) {
-            if (mode === 'delete') {
-                shapes = shapes.filter(shape => shape !== currentShape);
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                redrawShapes();
-                currentShape = null;
-                return;
-            }
-            selectedShapes = shapes.filter(shape => shape.groupId === currentShape.groupId);
+            selectedShapes.push(currentShape);
         }
     }
 });
 
-canvas.addEventListener('mouseup', () => {
-    isDrawing = false;
-    if (mode === 'draw') {
-        if (drawShape === 'rectangle') {
+canvas.addEventListener('mouseup', (e) => {
+    if (isDrawing) {
+        isDrawing = false;
+        if (drawShape === 'line') {
+            const newShape = { type: 'line', x1: lastX, y1: lastY, x2: e.offsetX, y2: e.offsetY, color: currentColor, groupId };
+            shapes.push(newShape);
+            drawLine(newShape.x1, newShape.y1, newShape.x2, newShape.y2);
+        } else if (drawShape === 'rectangle') {
             const newShape = { type: 'rectangle', x: snapToGrid ? snapToGridPosition(lastX) : lastX, y: snapToGrid ? snapToGridPosition(lastY) : lastY, width: snapToGrid ? snapToGridSize(canvas.mouseX - lastX) : canvas.mouseX - lastX, height: snapToGrid ? snapToGridSize(canvas.mouseY - lastY) : canvas.mouseY - lastY, color: currentColor, groupId };
             shapes.push(newShape);
             drawRectangle(newShape.x, newShape.y, newShape.width, newShape.height);
@@ -219,20 +235,38 @@ canvas.addEventListener('mousemove', (e) => {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             redrawShapes();
         }
+    } else if (mode === 'delete') {
+        const shapeIndex = shapes.findIndex(shape => 
+            e.offsetX >= shape.x && e.offsetX <= shape.x + shape.width &&
+            e.offsetY >= shape.y && e.offsetY <= shape.y + shape.height
+        );
+        if (shapeIndex > -1) {
+            shapes.splice(shapeIndex, 1);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            redrawShapes();
+        }
     }
 });
 
 function drawRectangle(x, y, width, height) {
     ctx.beginPath();
     ctx.rect(x, y, width, height);
-    ctx.strokeStyle = currentColor;
+    ctx.strokeStyle = strokeColor;
     ctx.stroke();
 }
 
 function drawCircle(x, y, radius) {
     ctx.beginPath();
     ctx.arc(x, y, radius, 0, Math.PI * 2);
-    ctx.strokeStyle = currentColor;
+    ctx.strokeStyle = strokeColor;
+    ctx.stroke();
+}
+
+function drawLine(x1, y1, x2, y2) {
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.strokeStyle = strokeColor;
     ctx.stroke();
 }
 
@@ -245,6 +279,11 @@ function redrawShapes() {
             ctx.stroke();
         } else if (shape.type === 'circle') {
             ctx.arc(shape.x, shape.y, shape.radius, 0, Math.PI * 2);
+            ctx.strokeStyle = shape.color;
+            ctx.stroke();
+        } else if (shape.type === 'line') {
+            ctx.moveTo(shape.x1, shape.y1);
+            ctx.lineTo(shape.x2, shape.y2);
             ctx.strokeStyle = shape.color;
             ctx.stroke();
         } else if (shape.type === 'text') {

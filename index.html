@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Virtual Whiteboard - Version 10</title>
+    <title>Virtual Whiteboard - Version 11</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -12,11 +12,13 @@
         <button id="saveCanvas">Save Canvas</button>
         <button id="drawRectangle">Draw Rectangle</button>
         <button id="drawCircle">Draw Circle</button>
+        <button id="drawLine">Draw Line</button>
         <button id="addText">Add Text</button>
         <input type="text" id="textInput" placeholder="Enter text" style="display: none;">
         <input type="number" id="fontSize" value="16" min="8" max="72">
         <input type="color" id="textColor" value="#000000">
         <input type="color" id="backgroundColor" value="#ffffff">
+        <input type="color" id="strokeColor" value="#000000">
         <button id="moveMode">Move Mode</button>
         <button id="resizeMode">Resize Mode</button>
         <button id="deleteShape">Delete Shape</button>
@@ -37,6 +39,7 @@
         </select>
         <label for="snapToGrid">Snap to Grid:</label>
         <input type="checkbox" id="snapToGrid">
+        <button id="colorPicker">Color Picker</button>
     </div>
     <canvas id="whiteboard"></canvas>
     <script src="script.js"></script>
