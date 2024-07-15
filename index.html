@@ -3,16 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Virtual Whiteboard - Version 3</title>
+    <title>Virtual Whiteboard - Version 4</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
         <div class="controls">
-            <input type="color" id="colorPicker" value="#000000">
+            <div class="color-palette">
+                <button class="color-btn" style="background-color: #000000;" data-color="#000000"></button>
+                <button class="color-btn" style="background-color: #FF0000;" data-color="#FF0000"></button>
+                <button class="color-btn" style="background-color: #00FF00;" data-color="#00FF00"></button>
+                <button class="color-btn" style="background-color: #0000FF;" data-color="#0000FF"></button>
+                <button class="color-btn" style="background-color: #FFFF00;" data-color="#FFFF00"></button>
+            </div>
             <input type="range" id="brushSize" min="1" max="20" value="5">
             <button id="clearCanvas">Clear</button>
             <button id="saveCanvas">Save</button>
+            <button id="drawRectangle">Rectangle</button>
+            <button id="drawCircle">Circle</button>
         </div>
         <canvas id="whiteboard"></canvas>
     </div>

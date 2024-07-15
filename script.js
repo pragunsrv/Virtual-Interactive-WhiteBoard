@@ -2,11 +2,13 @@
 const canvas = document.getElementById('whiteboard');
 const ctx = canvas.getContext('2d');
 
-// Get the color picker, brush size, and buttons
-const colorPicker = document.getElementById('colorPicker');
+// Get the controls
 const brushSize = document.getElementById('brushSize');
 const clearButton = document.getElementById('clearCanvas');
 const saveButton = document.getElementById('saveCanvas');
+const rectButton = document.getElementById('drawRectangle');
+const circleButton = document.getElementById('drawCircle');
+const colorBtns = document.querySelectorAll('.color-btn');
 
 // Set canvas size
 canvas.width = 800;
@@ -14,16 +16,21 @@ canvas.height = 600;
 
 // Variables to track mouse position and drawing state
 let isDrawing = false;
+let drawShape = 'line';
 let lastX = 0;
 let lastY = 0;
+let currentColor = '#000000';
 
 // Set default drawing properties
-ctx.strokeStyle = colorPicker.value;
+ctx.strokeStyle = currentColor;
 ctx.lineWidth = brushSize.value;
 
 // Update drawing properties based on user input
-colorPicker.addEventListener('input', (e) => {
-    ctx.strokeStyle = e.target.value;
+colorBtns.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+        currentColor = e.target.getAttribute('data-color');
+        ctx.strokeStyle = currentColor;
+    });
 });
 
 brushSize.addEventListener('input', (e) => {
@@ -44,11 +51,13 @@ canvas.addEventListener('mouseup', () => {
 // Draw on canvas while mouse is moving
 canvas.addEventListener('mousemove', (e) => {
     if (!isDrawing) return;
-    ctx.beginPath();
-    ctx.moveTo(lastX, lastY);
-    ctx.lineTo(e.offsetX, e.offsetY);
-    ctx.stroke();
-    [lastX, lastY] = [e.offsetX, e.offsetY];
+    if (drawShape === 'line') {
+        ctx.beginPath();
+        ctx.moveTo(lastX, lastY);
+        ctx.lineTo(e.offsetX, e.offsetY);
+        ctx.stroke();
+        [lastX, lastY] = [e.offsetX, e.offsetY];
+    }
 });
 
 // Clear the canvas
@@ -62,4 +71,31 @@ saveButton.addEventListener('click', () => {
     link.href = canvas.toDataURL();
     link.download = 'drawing.png';
     link.click();
+});
+
+// Switch to rectangle drawing
+rectButton.addEventListener('click', () => {
+    drawShape = 'rectangle';
+    canvas.addEventListener('mouseup', (e) => {
+        if (drawShape !== 'rectangle') return;
+        const width = e.offsetX - lastX;
+        const height = e.offsetY - lastY;
+        ctx.beginPath();
+        ctx.rect(lastX, lastY, width, height);
+        ctx.stroke();
+        drawShape = 'line'; // Reset to line drawing after rectangle
+    });
+});
+
+// Switch to circle drawing
+circleButton.addEventListener('click', () => {
+    drawShape = 'circle';
+    canvas.addEventListener('mouseup', (e) => {
+        if (drawShape !== 'circle') return;
+        const radius = Math.sqrt(Math.pow(e.offsetX - lastX, 2) + Math.pow(e.offsetY - lastY, 2));
+        ctx.beginPath();
+        ctx.arc(lastX, lastY, radius, 0, 2 * Math.PI);
+        ctx.stroke();
+        drawShape = 'line'; // Reset to line drawing after circle
+    });
 });
