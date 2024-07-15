@@ -17,10 +17,9 @@ const resizeButton = document.getElementById('resizeMode');
 const deleteButton = document.getElementById('deleteShape');
 const groupButton = document.getElementById('groupShapes');
 const ungroupButton = document.getElementById('ungroupShapes');
-const colorBtns = document.querySelectorAll('.color-btn');
 const strokeStyleSelect = document.getElementById('strokeStyle');
 const snapToGridCheckbox = document.getElementById('snapToGrid');
-const colorPickerButton = document.getElementById('colorPicker');
+const colorPickerInput = document.getElementById('colorPicker');
 
 canvas.width = 800;
 canvas.height = 600;
@@ -40,11 +39,9 @@ let groupId = 0;
 let snapToGrid = false;
 const gridSize = 20;
 
-colorBtns.forEach(btn => {
-    btn.addEventListener('click', (e) => {
-        currentColor = e.target.getAttribute('data-color');
-        ctx.strokeStyle = currentColor;
-    });
+colorPickerInput.addEventListener('input', (e) => {
+    currentColor = e.target.value;
+    ctx.strokeStyle = currentColor;
 });
 
 brushSize.addEventListener('input', (e) => {
@@ -83,13 +80,6 @@ strokeStyleSelect.addEventListener('change', (e) => {
 
 snapToGridCheckbox.addEventListener('change', (e) => {
     snapToGrid = e.target.checked;
-});
-
-colorPickerButton.addEventListener('click', () => {
-    // Color picker functionality can be implemented here
-    // For simplicity, it's currently just changing color to red
-    currentColor = '#ff0000';
-    ctx.strokeStyle = currentColor;
 });
 
 clearButton.addEventListener('click', () => {
@@ -151,25 +141,32 @@ groupButton.addEventListener('click', () => {
 ungroupButton.addEventListener('click', () => {
     isGrouping = false;
     shapes.forEach(shape => {
-        if (shape.groupId === currentShape.groupId) {
+        if (shape.groupId === groupId) {
             shape.groupId = null;
         }
     });
-    currentShape.groupId = null;
-    selectedShapes = [];
+    groupId = 0;
 });
 
 canvas.addEventListener('mousedown', (e) => {
-    isDrawing = true;
     lastX = e.offsetX;
     lastY = e.offsetY;
-    if (mode === 'move' || mode === 'resize' || mode === 'delete') {
-        currentShape = shapes.find(shape => 
+    isDrawing = true;
+    if (mode === 'move' || mode === 'resize') {
+        currentShape = shapes.find(shape =>
             e.offsetX >= shape.x && e.offsetX <= shape.x + shape.width &&
             e.offsetY >= shape.y && e.offsetY <= shape.y + shape.height
         );
-        if (currentShape) {
-            selectedShapes.push(currentShape);
+    }
+    if (mode === 'delete') {
+        const shapeIndex = shapes.findIndex(shape =>
+            e.offsetX >= shape.x && e.offsetX <= shape.x + shape.width &&
+            e.offsetY >= shape.y && e.offsetY <= shape.y + shape.height
+        );
+        if (shapeIndex > -1) {
+            shapes.splice(shapeIndex, 1);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            redrawShapes();
         }
     }
 });
@@ -236,7 +233,7 @@ canvas.addEventListener('mousemove', (e) => {
             redrawShapes();
         }
     } else if (mode === 'delete') {
-        const shapeIndex = shapes.findIndex(shape => 
+        const shapeIndex = shapes.findIndex(shape =>
             e.offsetX >= shape.x && e.offsetX <= shape.x + shape.width &&
             e.offsetY >= shape.y && e.offsetY <= shape.y + shape.height
         );
@@ -252,6 +249,7 @@ function drawRectangle(x, y, width, height) {
     ctx.beginPath();
     ctx.rect(x, y, width, height);
     ctx.strokeStyle = strokeColor;
+    ctx.lineWidth = brushSize.value;
     ctx.stroke();
 }
 
@@ -259,6 +257,7 @@ function drawCircle(x, y, radius) {
     ctx.beginPath();
     ctx.arc(x, y, radius, 0, Math.PI * 2);
     ctx.strokeStyle = strokeColor;
+    ctx.lineWidth = brushSize.value;
     ctx.stroke();
 }
 
@@ -267,6 +266,7 @@ function drawLine(x1, y1, x2, y2) {
     ctx.moveTo(x1, y1);
     ctx.lineTo(x2, y2);
     ctx.strokeStyle = strokeColor;
+    ctx.lineWidth = brushSize.value;
     ctx.stroke();
 }
 
@@ -276,15 +276,18 @@ function redrawShapes() {
         if (shape.type === 'rectangle') {
             ctx.rect(shape.x, shape.y, shape.width, shape.height);
             ctx.strokeStyle = shape.color;
+            ctx.lineWidth = brushSize.value;
             ctx.stroke();
         } else if (shape.type === 'circle') {
             ctx.arc(shape.x, shape.y, shape.radius, 0, Math.PI * 2);
             ctx.strokeStyle = shape.color;
+            ctx.lineWidth = brushSize.value;
             ctx.stroke();
         } else if (shape.type === 'line') {
             ctx.moveTo(shape.x1, shape.y1);
             ctx.lineTo(shape.x2, shape.y2);
             ctx.strokeStyle = shape.color;
+            ctx.lineWidth = brushSize.value;
             ctx.stroke();
         } else if (shape.type === 'text') {
             ctx.font = `${shape.fontSize}px Arial`;
