@@ -9,7 +9,9 @@ const textButton = document.getElementById('addText');
 const textInput = document.getElementById('textInput');
 const moveButton = document.getElementById('moveMode');
 const resizeButton = document.getElementById('resizeMode');
+const deleteButton = document.getElementById('deleteShape');
 const colorBtns = document.querySelectorAll('.color-btn');
+const backgroundColorInput = document.getElementById('backgroundColor');
 
 canvas.width = 800;
 canvas.height = 600;
@@ -21,7 +23,7 @@ let lastY = 0;
 let currentColor = '#000000';
 let shapes = [];
 let currentShape = null;
-let mode = 'draw'; // 'draw', 'move', 'resize'
+let mode = 'draw'; // 'draw', 'move', 'resize', 'delete'
 
 // Update drawing properties based on user input
 colorBtns.forEach(btn => {
@@ -35,11 +37,15 @@ brushSize.addEventListener('input', (e) => {
     ctx.lineWidth = e.target.value;
 });
 
+backgroundColorInput.addEventListener('input', (e) => {
+    canvas.style.backgroundColor = e.target.value;
+});
+
 canvas.addEventListener('mousedown', (e) => {
     isDrawing = true;
     lastX = e.offsetX;
     lastY = e.offsetY;
-    if (mode === 'move' || mode === 'resize') {
+    if (mode === 'move' || mode === 'resize' || mode === 'delete') {
         currentShape = shapes.find(shape => 
             e.offsetX >= shape.x && e.offsetX <= shape.x + shape.width &&
             e.offsetY >= shape.y && e.offsetY <= shape.y + shape.height
@@ -74,7 +80,7 @@ canvas.addEventListener('mousemove', (e) => {
             ctx.lineTo(e.offsetX, e.offsetY);
             ctx.stroke();
         }
-    } else if (mode === 'move' || mode === 'resize') {
+    } else if (mode === 'move' || mode === 'resize' || mode === 'delete') {
         if (currentShape) {
             if (mode === 'move') {
                 const dx = e.offsetX - lastX;
@@ -86,6 +92,12 @@ canvas.addEventListener('mousemove', (e) => {
                 const dy = e.offsetY - lastY;
                 currentShape.width += dx;
                 currentShape.height += dy;
+            } else if (mode === 'delete') {
+                shapes = shapes.filter(shape => shape !== currentShape);
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                redrawShapes();
+                currentShape = null;
+                return;
             }
             lastX = e.offsetX;
             lastY = e.offsetY;
@@ -139,24 +151,36 @@ resizeButton.addEventListener('click', () => {
     mode = 'resize';
 });
 
+deleteButton.addEventListener('click', () => {
+    mode = 'delete';
+});
+
 function drawRectangle(x, y, width, height) {
     ctx.beginPath();
     ctx.rect(x, y, width, height);
+    ctx.strokeStyle = currentColor;
     ctx.stroke();
 }
 
 function drawCircle(x, y, radius) {
     ctx.beginPath();
-    ctx.arc(x, y, radius, 0, 2 * Math.PI);
+    ctx.arc(x, y, radius, 0, Math.PI * 2);
+    ctx.strokeStyle = currentColor;
     ctx.stroke();
 }
 
 function redrawShapes() {
     shapes.forEach(shape => {
         if (shape.type === 'rectangle') {
-            drawRectangle(shape.x, shape.y, shape.width, shape.height);
+            ctx.beginPath();
+            ctx.rect(shape.x, shape.y, shape.width, shape.height);
+            ctx.strokeStyle = shape.color;
+            ctx.stroke();
         } else if (shape.type === 'circle') {
-            drawCircle(shape.x, shape.y, shape.radius);
+            ctx.beginPath();
+            ctx.arc(shape.x, shape.y, shape.radius, 0, Math.PI * 2);
+            ctx.strokeStyle = shape.color;
+            ctx.stroke();
         }
     });
 }
