@@ -7,6 +7,8 @@ const rectButton = document.getElementById('drawRectangle');
 const circleButton = document.getElementById('drawCircle');
 const textButton = document.getElementById('addText');
 const textInput = document.getElementById('textInput');
+const fontSizeInput = document.getElementById('fontSize');
+const textColorInput = document.getElementById('textColor');
 const moveButton = document.getElementById('moveMode');
 const resizeButton = document.getElementById('resizeMode');
 const deleteButton = document.getElementById('deleteShape');
@@ -35,6 +37,14 @@ colorBtns.forEach(btn => {
 
 brushSize.addEventListener('input', (e) => {
     ctx.lineWidth = e.target.value;
+});
+
+fontSizeInput.addEventListener('input', (e) => {
+    ctx.font = `${e.target.value}px Arial`;
+});
+
+textColorInput.addEventListener('input', (e) => {
+    ctx.fillStyle = e.target.value;
 });
 
 backgroundColorInput.addEventListener('input', (e) => {
@@ -135,12 +145,12 @@ textButton.addEventListener('click', () => {
 textInput.addEventListener('blur', () => {
     const text = textInput.value;
     if (text) {
-        ctx.font = '20px Arial';
-        ctx.fillStyle = currentColor;
+        ctx.font = `${fontSizeInput.value}px Arial`;
+        ctx.fillStyle = textColorInput.value;
         ctx.fillText(text, lastX, lastY);
-        textInput.style.display = 'none';
-        textInput.value = '';
+        shapes.push({ type: 'text', x: lastX, y: lastY, text, fontSize: fontSizeInput.value, color: textColorInput.value });
     }
+    textInput.style.display = 'none';
 });
 
 moveButton.addEventListener('click', () => {
@@ -181,6 +191,10 @@ function redrawShapes() {
             ctx.arc(shape.x, shape.y, shape.radius, 0, Math.PI * 2);
             ctx.strokeStyle = shape.color;
             ctx.stroke();
+        } else if (shape.type === 'text') {
+            ctx.font = `${shape.fontSize}px Arial`;
+            ctx.fillStyle = shape.color;
+            ctx.fillText(shape.text, shape.x, shape.y);
         }
     });
 }
