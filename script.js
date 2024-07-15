@@ -8,6 +8,8 @@ const clearButton = document.getElementById('clearCanvas');
 const saveButton = document.getElementById('saveCanvas');
 const rectButton = document.getElementById('drawRectangle');
 const circleButton = document.getElementById('drawCircle');
+const textButton = document.getElementById('addText');
+const textInput = document.getElementById('textInput');
 const colorBtns = document.querySelectorAll('.color-btn');
 
 // Set canvas size
@@ -98,4 +100,21 @@ circleButton.addEventListener('click', () => {
         ctx.stroke();
         drawShape = 'line'; // Reset to line drawing after circle
     });
+});
+
+// Add and edit text on the canvas
+textButton.addEventListener('click', () => {
+    textInput.style.display = 'block';
+    textInput.focus();
+});
+
+textInput.addEventListener('blur', () => {
+    const text = textInput.value;
+    if (text) {
+        ctx.font = '20px Arial';
+        ctx.fillStyle = currentColor;
+        ctx.fillText(text, lastX, lastY);
+        textInput.style.display = 'none';
+        textInput.value = '';
+    }
 });
