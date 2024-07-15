@@ -1,8 +1,5 @@
-// Get the canvas element and its context
 const canvas = document.getElementById('whiteboard');
 const ctx = canvas.getContext('2d');
-
-// Get the controls
 const brushSize = document.getElementById('brushSize');
 const clearButton = document.getElementById('clearCanvas');
 const saveButton = document.getElementById('saveCanvas');
@@ -10,22 +7,21 @@ const rectButton = document.getElementById('drawRectangle');
 const circleButton = document.getElementById('drawCircle');
 const textButton = document.getElementById('addText');
 const textInput = document.getElementById('textInput');
+const moveButton = document.getElementById('moveMode');
+const resizeButton = document.getElementById('resizeMode');
 const colorBtns = document.querySelectorAll('.color-btn');
 
-// Set canvas size
 canvas.width = 800;
 canvas.height = 600;
 
-// Variables to track mouse position and drawing state
 let isDrawing = false;
 let drawShape = 'line';
 let lastX = 0;
 let lastY = 0;
 let currentColor = '#000000';
-
-// Set default drawing properties
-ctx.strokeStyle = currentColor;
-ctx.lineWidth = brushSize.value;
+let shapes = [];
+let currentShape = null;
+let mode = 'draw'; // 'draw', 'move', 'resize'
 
 // Update drawing properties based on user input
 colorBtns.forEach(btn => {
@@ -39,35 +35,71 @@ brushSize.addEventListener('input', (e) => {
     ctx.lineWidth = e.target.value;
 });
 
-// Start drawing on mouse down
 canvas.addEventListener('mousedown', (e) => {
     isDrawing = true;
-    [lastX, lastY] = [e.offsetX, e.offsetY];
-});
-
-// Stop drawing on mouse up
-canvas.addEventListener('mouseup', () => {
-    isDrawing = false;
-});
-
-// Draw on canvas while mouse is moving
-canvas.addEventListener('mousemove', (e) => {
-    if (!isDrawing) return;
-    if (drawShape === 'line') {
-        ctx.beginPath();
-        ctx.moveTo(lastX, lastY);
-        ctx.lineTo(e.offsetX, e.offsetY);
-        ctx.stroke();
-        [lastX, lastY] = [e.offsetX, e.offsetY];
+    lastX = e.offsetX;
+    lastY = e.offsetY;
+    if (mode === 'move' || mode === 'resize') {
+        currentShape = shapes.find(shape => 
+            e.offsetX >= shape.x && e.offsetX <= shape.x + shape.width &&
+            e.offsetY >= shape.y && e.offsetY <= shape.y + shape.height
+        );
     }
 });
 
-// Clear the canvas
-clearButton.addEventListener('click', () => {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+canvas.addEventListener('mouseup', () => {
+    isDrawing = false;
+    if (mode === 'draw') {
+        if (drawShape === 'rectangle') {
+            shapes.push({ type: 'rectangle', x: lastX, y: lastY, width: canvas.mouseX - lastX, height: canvas.mouseY - lastY, color: currentColor });
+            drawRectangle(lastX, lastY, canvas.mouseX - lastX, canvas.mouseY - lastY);
+        } else if (drawShape === 'circle') {
+            const radius = Math.sqrt(Math.pow(canvas.mouseX - lastX, 2) + Math.pow(canvas.mouseY - lastY, 2));
+            shapes.push({ type: 'circle', x: lastX, y: lastY, radius: radius, color: currentColor });
+            drawCircle(lastX, lastY, radius);
+        }
+    }
 });
 
-// Save the canvas as an image
+canvas.addEventListener('mousemove', (e) => {
+    if (!isDrawing) return;
+    canvas.mouseX = e.offsetX;
+    canvas.mouseY = e.offsetY;
+    if (mode === 'draw') {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        redrawShapes();
+        if (drawShape === 'line') {
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(e.offsetX, e.offsetY);
+            ctx.stroke();
+        }
+    } else if (mode === 'move' || mode === 'resize') {
+        if (currentShape) {
+            if (mode === 'move') {
+                const dx = e.offsetX - lastX;
+                const dy = e.offsetY - lastY;
+                currentShape.x += dx;
+                currentShape.y += dy;
+            } else if (mode === 'resize') {
+                const dx = e.offsetX - lastX;
+                const dy = e.offsetY - lastY;
+                currentShape.width += dx;
+                currentShape.height += dy;
+            }
+            lastX = e.offsetX;
+            lastY = e.offsetY;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            redrawShapes();
+        }
+    }
+});
+
+clearButton.addEventListener('click', () => {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    shapes = [];
+});
+
 saveButton.addEventListener('click', () => {
     const link = document.createElement('a');
     link.href = canvas.toDataURL();
@@ -75,34 +107,14 @@ saveButton.addEventListener('click', () => {
     link.click();
 });
 
-// Switch to rectangle drawing
 rectButton.addEventListener('click', () => {
     drawShape = 'rectangle';
-    canvas.addEventListener('mouseup', (e) => {
-        if (drawShape !== 'rectangle') return;
-        const width = e.offsetX - lastX;
-        const height = e.offsetY - lastY;
-        ctx.beginPath();
-        ctx.rect(lastX, lastY, width, height);
-        ctx.stroke();
-        drawShape = 'line'; // Reset to line drawing after rectangle
-    });
 });
 
-// Switch to circle drawing
 circleButton.addEventListener('click', () => {
     drawShape = 'circle';
-    canvas.addEventListener('mouseup', (e) => {
-        if (drawShape !== 'circle') return;
-        const radius = Math.sqrt(Math.pow(e.offsetX - lastX, 2) + Math.pow(e.offsetY - lastY, 2));
-        ctx.beginPath();
-        ctx.arc(lastX, lastY, radius, 0, 2 * Math.PI);
-        ctx.stroke();
-        drawShape = 'line'; // Reset to line drawing after circle
-    });
 });
 
-// Add and edit text on the canvas
 textButton.addEventListener('click', () => {
     textInput.style.display = 'block';
     textInput.focus();
@@ -118,3 +130,33 @@ textInput.addEventListener('blur', () => {
         textInput.value = '';
     }
 });
+
+moveButton.addEventListener('click', () => {
+    mode = 'move';
+});
+
+resizeButton.addEventListener('click', () => {
+    mode = 'resize';
+});
+
+function drawRectangle(x, y, width, height) {
+    ctx.beginPath();
+    ctx.rect(x, y, width, height);
+    ctx.stroke();
+}
+
+function drawCircle(x, y, radius) {
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, 2 * Math.PI);
+    ctx.stroke();
+}
+
+function redrawShapes() {
+    shapes.forEach(shape => {
+        if (shape.type === 'rectangle') {
+            drawRectangle(shape.x, shape.y, shape.width, shape.height);
+        } else if (shape.type === 'circle') {
+            drawCircle(shape.x, shape.y, shape.radius);
+        }
+    });
+}
